@@ -39,11 +39,15 @@ export const Header: React.FC<HeaderProps> = ({
   }
 
   const artWidth = getAsciiArtWidth(displayTitle);
+  const versionText = `v${version}`;
+  const containerWidth = nightly
+    ? Math.max(artWidth, versionText.length)
+    : artWidth;
 
   return (
     <Box
       alignItems="flex-start"
-      width={artWidth}
+      width={containerWidth}
       flexShrink={0}
       flexDirection="column"
     >
