@@ -18,6 +18,18 @@ function getAuthTypeFromEnv(): AuthType | undefined {
   if (process.env.GEMINI_API_KEY) {
     return AuthType.USE_GEMINI;
   }
+  if (process.env.OPENAI_API_KEY) {
+    return AuthType.USE_OPENAI;
+  }
+  if (process.env.OPENROUTER_API_KEY) {
+    return AuthType.USE_OPENROUTER;
+  }
+  if (process.env.DEEPSEEK_API_KEY) {
+    return AuthType.USE_DEEPSEEK;
+  }
+  if (process.env.GLM_API_KEY || process.env.ZHIPUAI_API_KEY) {
+    return AuthType.USE_GLM;
+  }
   return undefined;
 }
 

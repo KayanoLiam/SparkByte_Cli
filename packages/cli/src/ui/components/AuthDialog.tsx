@@ -77,6 +77,13 @@ export function AuthDialog({
       value: AuthType.USE_GEMINI,
     },
     { label: 'Vertex AI', value: AuthType.USE_VERTEX_AI },
+    { label: 'OpenAI Compatible (OPENAI_API_KEY)', value: AuthType.USE_OPENAI },
+    {
+      label: 'OpenRouter (OPENROUTER_API_KEY)',
+      value: AuthType.USE_OPENROUTER,
+    },
+    { label: 'DeepSeek (DEEPSEEK_API_KEY)', value: AuthType.USE_DEEPSEEK },
+    { label: 'GLM/ZhipuAI (GLM_API_KEY or ZHIPUAI_API_KEY)', value: AuthType.USE_GLM },
   ];
 
   const initialAuthIndex = items.findIndex((item) => {

@@ -46,6 +46,10 @@ export enum AuthType {
   USE_GEMINI = 'gemini-api-key',
   USE_VERTEX_AI = 'vertex-ai',
   CLOUD_SHELL = 'cloud-shell',
+  USE_OPENAI = 'openai',
+  USE_OPENROUTER = 'openrouter',
+  USE_DEEPSEEK = 'deepseek',
+  USE_GLM = 'glm',
 }
 
 export type ContentGeneratorConfig = {
@@ -54,6 +58,8 @@ export type ContentGeneratorConfig = {
   vertexai?: boolean;
   authType?: AuthType | undefined;
   proxy?: string | undefined;
+  baseUrl?: string;
+  provider?: 'openai' | 'openrouter' | 'deepseek' | 'glm';
 };
 
 export function createContentGeneratorConfig(
@@ -64,6 +70,14 @@ export function createContentGeneratorConfig(
   const googleApiKey = process.env.GOOGLE_API_KEY || undefined;
   const googleCloudProject = process.env.GOOGLE_CLOUD_PROJECT || undefined;
   const googleCloudLocation = process.env.GOOGLE_CLOUD_LOCATION || undefined;
+  const openaiApiKey = process.env.OPENAI_API_KEY || undefined;
+  const openrouterApiKey = process.env.OPENROUTER_API_KEY || undefined;
+  const deepseekApiKey = process.env.DEEPSEEK_API_KEY || undefined;
+  const glmApiKey = process.env.GLM_API_KEY || process.env.ZHIPUAI_API_KEY || undefined;
+  const openaiBaseUrl = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
+  const openrouterBaseUrl = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
+  const deepseekBaseUrl = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+  const glmBaseUrl = process.env.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4';
 
   // Use runtime model from config if available; otherwise, fall back to parameter or default
   const effectiveModel = config.getModel() || DEFAULT_GEMINI_MODEL;
@@ -101,6 +115,34 @@ export function createContentGeneratorConfig(
     contentGeneratorConfig.apiKey = googleApiKey;
     contentGeneratorConfig.vertexai = true;
 
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_OPENAI && openaiApiKey) {
+    contentGeneratorConfig.apiKey = openaiApiKey;
+    contentGeneratorConfig.baseUrl = openaiBaseUrl;
+    contentGeneratorConfig.provider = 'openai';
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_OPENROUTER && openrouterApiKey) {
+    contentGeneratorConfig.apiKey = openrouterApiKey;
+    contentGeneratorConfig.baseUrl = openrouterBaseUrl;
+    contentGeneratorConfig.provider = 'openrouter';
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_DEEPSEEK && deepseekApiKey) {
+    contentGeneratorConfig.apiKey = deepseekApiKey;
+    contentGeneratorConfig.baseUrl = deepseekBaseUrl;
+    contentGeneratorConfig.provider = 'deepseek';
+    return contentGeneratorConfig;
+  }
+
+  if (authType === AuthType.USE_GLM && glmApiKey) {
+    contentGeneratorConfig.apiKey = glmApiKey;
+    contentGeneratorConfig.baseUrl = glmBaseUrl;
+    contentGeneratorConfig.provider = 'glm';
     return contentGeneratorConfig;
   }
 
@@ -143,6 +185,22 @@ export async function createContentGenerator(
       httpOptions,
     });
     return new LoggingContentGenerator(googleGenAI.models, gcConfig);
+  }
+
+  if (
+    config.authType === AuthType.USE_OPENAI ||
+    config.authType === AuthType.USE_OPENROUTER ||
+    config.authType === AuthType.USE_DEEPSEEK ||
+    config.authType === AuthType.USE_GLM
+  ) {
+    const { OpenAICompatibleContentGenerator } = await import('./openaiCompatible.js');
+    const provider = new OpenAICompatibleContentGenerator({
+      baseUrl: config.baseUrl!,
+      apiKey: config.apiKey!,
+      model: config.model,
+      httpHeaders: httpOptions.headers,
+    });
+    return new LoggingContentGenerator(provider, gcConfig);
   }
   throw new Error(
     `Error creating contentGenerator: Unsupported authType: ${config.authType}`,

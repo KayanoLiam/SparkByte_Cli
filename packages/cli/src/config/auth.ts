@@ -38,5 +38,33 @@ export const validateAuthMethod = (authMethod: string): string | null => {
     return null;
   }
 
+  if (authMethod === AuthType.USE_OPENAI) {
+    if (!process.env.OPENAI_API_KEY) {
+      return 'OPENAI_API_KEY environment variable not found.';
+    }
+    return null;
+  }
+
+  if (authMethod === AuthType.USE_OPENROUTER) {
+    if (!process.env.OPENROUTER_API_KEY) {
+      return 'OPENROUTER_API_KEY environment variable not found.';
+    }
+    return null;
+  }
+
+  if (authMethod === AuthType.USE_DEEPSEEK) {
+    if (!process.env.DEEPSEEK_API_KEY) {
+      return 'DEEPSEEK_API_KEY environment variable not found.';
+    }
+    return null;
+  }
+
+  if (authMethod === AuthType.USE_GLM) {
+    if (!process.env.GLM_API_KEY && !process.env.ZHIPUAI_API_KEY) {
+      return 'GLM_API_KEY (or ZHIPUAI_API_KEY) environment variable not found.';
+    }
+    return null;
+  }
+
   return 'Invalid auth method selected.';
 };
